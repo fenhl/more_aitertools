@@ -1,6 +1,13 @@
 import aitertools
 import asyncio
 
+class Queue(asyncio.Queue):
+    def __aiter__(self):
+        return self
+
+    async def __anext__(self):
+        return await self.get()
+
 async def merge(aiters):
     aiters = await aitertools.aiter(aiters)
     iters = [None]
