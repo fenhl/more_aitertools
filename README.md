@@ -1,7 +1,8 @@
 This Python module provides:
 
-* The `merge` async iterator, which takes an iterable of iterables, and yields items from them in the order they arrive. See the example. Both the outer iterable and the inner iterables may be sync or async.
 * A subclass of `Queue` which is also an async iterator.
+* The `collate` async iterator, which is an async variant of [`heapq.merge`](https://docs.python.org/3/library/heapq.html#heapq.merge) (aka `more_itertools.collate`). Currently does not support `reverse` but does support `key`.
+* The `merge` async iterator, which takes an iterable of iterables, and yields items from them in the order they arrive. See the example. Both the outer iterable and the inner iterables may be sync or async.
 
 Python 3.6 is required.
 

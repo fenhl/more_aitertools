@@ -1,5 +1,6 @@
 import aitertools
 import asyncio
+import heapq
 
 class Queue(asyncio.Queue):
     def __aiter__(self):
@@ -7,6 +8,38 @@ class Queue(asyncio.Queue):
 
     async def __anext__(self):
         return await self.get()
+
+async def collate(*iterables, key=lambda x: x, loop=None):
+    if loop is None:
+        loop = asyncio.get_event_loop()
+    iters = [
+        await aitertools.aiter(iterable)
+        for iterable in iterables
+    ]
+    heap = []
+    nexts = []
+    empty_iters = set()
+    for i, iterable in iters:
+        try:
+            item = await aitertools.anext(iterable)
+            heapq.heappush(heap, (key(item), item, i))
+        except StopAsyncIteration:
+            empty_iters.add(i)
+        else:
+            nexts.append(loop.create_task(aitertools.anext(iterable)))
+    for i in sorted(empty_iters, reverse=True):
+        del iters[i]
+    while any(fut is not None for fut in nexts):
+        k, item, i = heapq.heappop(heap)
+        yield item
+        if nexts[i] is not None:
+            try:
+                item = await nexts[i]
+                heapq.heappush(heap, (key(item), item, i))
+            except StopAsyncIteration:
+                nexts[i] = None
+            else:
+                nexts[i] = loop.create_task(aitertools.anext(iters[i]))
 
 async def merge(aiters):
     aiters = await aitertools.aiter(aiters)
@@ -29,7 +62,7 @@ async def merge(aiters):
                 except StopAsyncIteration:
                     completed_iters.add(i)
         for i in sorted(completed_iters, reverse=True):
-            iters.pop(i)
-            nexts.pop(i)
+            del iters[i]
+            del nexts[i]
         iters += new_iters
         nexts += [asyncio.ensure_future(aitertools.anext(new_iter)) for new_iter in new_iters]
