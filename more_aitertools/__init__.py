@@ -18,17 +18,14 @@ async def collate(*iterables, key=lambda x: x, loop=None):
     ]
     heap = []
     nexts = []
-    empty_iters = set()
     for i, iterable in enumerate(iters):
         try:
             item = await aitertools.anext(iterable)
             heapq.heappush(heap, (key(item), item, i))
         except StopAsyncIteration:
-            empty_iters.add(i)
+            nexts.append(None)
         else:
             nexts.append(loop.create_task(aitertools.anext(iterable)))
-    for i in sorted(empty_iters, reverse=True):
-        del iters[i]
     while any(fut is not None for fut in nexts):
         k, item, i = heapq.heappop(heap)
         yield item
