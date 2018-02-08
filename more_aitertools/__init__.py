@@ -19,7 +19,7 @@ async def collate(*iterables, key=lambda x: x, loop=None):
     heap = []
     nexts = []
     empty_iters = set()
-    for i, iterable in iters:
+    for i, iterable in enumerate(iters):
         try:
             item = await aitertools.anext(iterable)
             heapq.heappush(heap, (key(item), item, i))
