@@ -65,3 +65,7 @@ async def merge(aiters, loop=None):
             del nexts[i]
         iters += new_iters
         nexts += [loop.create_task(aitertools.anext(new_iter)) for new_iter in new_iters]
+
+async def never():
+    await asyncio.Future()
+    yield
