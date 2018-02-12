@@ -38,7 +38,9 @@ async def collate(*iterables, key=lambda x: x, loop=None):
             else:
                 nexts[i] = loop.create_task(aitertools.anext(iters[i]))
 
-async def merge(aiters):
+async def merge(aiters, loop=None):
+    if loop is None:
+        loop = asyncio.get_event_loop()
     aiters = await aitertools.aiter(aiters)
     iters = [None]
     nexts = [loop.create_task(aitertools.anext(aiters))]
