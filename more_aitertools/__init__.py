@@ -41,7 +41,7 @@ async def collate(*iterables, key=lambda x: x, loop=None):
 async def merge(aiters):
     aiters = await aitertools.aiter(aiters)
     iters = [None]
-    nexts = [asyncio.ensure_future(aitertools.anext(aiters))]
+    nexts = [loop.create_task(aitertools.anext(aiters))]
     while len(iters) > 0:
         await asyncio.wait(nexts, return_when=asyncio.FIRST_COMPLETED)
         new_iters = []
@@ -55,11 +55,11 @@ async def merge(aiters):
                     else:
                         # new item
                         yield future.result()
-                    nexts[i] = asyncio.ensure_future(aitertools.anext(aiters if iters[i] is None else iters[i]))
+                    nexts[i] = loop.create_task(aitertools.anext(aiters if iters[i] is None else iters[i]))
                 except StopAsyncIteration:
                     completed_iters.add(i)
         for i in sorted(completed_iters, reverse=True):
             del iters[i]
             del nexts[i]
         iters += new_iters
-        nexts += [asyncio.ensure_future(aitertools.anext(new_iter)) for new_iter in new_iters]
+        nexts += [loop.create_task(aitertools.anext(new_iter)) for new_iter in new_iters]
