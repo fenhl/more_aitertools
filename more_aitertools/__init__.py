@@ -36,6 +36,18 @@ async def collate(*iterables, key=lambda x: x):
             else:
                 nexts[i] = asyncio.create_task(aitertools.anext(iters[i]))
 
+async def consume(aiter, n=float('inf')):
+    aiter = await aitertools.aiter(aiter)
+    if n == float('inf'):
+        async for item in aiter:
+            pass
+    else:
+        for i in range(n):
+            try:
+                await aitertools.anext(aiter)
+            except StopAsyncIteration:
+                return
+
 async def merge(aiters):
     aiters = await aitertools.aiter(aiters)
     iters = [None]
