@@ -1,11 +1,12 @@
-This Python module provides:
+This Python package is intended as an add-on to [`aitertools`](https://github.com/asyncdef/aitertools), filling some gaps in its API. It provides:
 
 * A subclass of `Queue` which is also an async iterator.
 * The `collate` async iterator, which is an async variant of [`heapq.merge`](https://docs.python.org/3/library/heapq.html#heapq.merge) (aka `more_itertools.collate`). Currently does not support `reverse` but does support `key`.
 * The `merge` async iterator, which takes an iterable of iterables, and yields items from them in the order they arrive. See the example. Both the outer iterable and the inner iterables may be sync or async.
 * The `never` async iterator, which never yields or returns.
+* The `wait` async iterator, which takes an iterable (sync or async) of futures, and yields results from the front of the iterable as soon as they become available. Using this is similar to calling `asyncio.wait` in `return_when=ALL_COMPLETED` mode and taking the first return value, except it can handle an empty iterable, `.result()` does not have to be called, futures near the start can be used before later futures become available, and futures yielded from the iterable are started before continuing the iteration.
 
-Python 3.6 is required.
+Python 3.7 is required.
 
 # Example
 
