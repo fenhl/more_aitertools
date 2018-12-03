@@ -1,5 +1,6 @@
 import aioitertools
 import asyncio
+import builtins
 import heapq
 
 class Queue(asyncio.Queue):
@@ -73,6 +74,9 @@ async def merge(aiters):
             del nexts[i]
         iters += new_iters
         nexts += [asyncio.create_task(aioitertools.next(new_iter)) for new_iter in new_iters]
+
+async def tuple(aiter):
+    return builtins.tuple(item async for item in aioitertools.iter(aiter))
 
 async def wait(aiter):
     aiter = aioitertools.iter(aiter)
