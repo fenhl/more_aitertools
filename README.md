@@ -1,4 +1,4 @@
-This Python package is intended as an add-on to [`aitertools`](https://github.com/asyncdef/aitertools), filling some gaps in its API. It provides:
+This Python package is intended as an add-on to [`aioitertools`](https://github.com/jreese/aioitertools), filling some gaps in its API. It provides:
 
 * A subclass of `Queue` which is also an async iterator.
 * The `collate` async iterator, which is an async variant of [`heapq.merge`](https://docs.python.org/3/library/heapq.html#heapq.merge) (aka [`more_itertools.collate`](https://more-itertools.readthedocs.io/en/latest/api.html#more_itertools.collate)). Currently does not support `reverse` but does support `key`.
