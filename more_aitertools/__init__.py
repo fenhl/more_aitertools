@@ -1,6 +1,7 @@
 import aioitertools
 import asyncio
 import builtins
+import concurrent.futures
 import heapq
 
 class Queue(asyncio.Queue):
@@ -69,6 +70,8 @@ async def merge(aiters):
                     nexts[i] = asyncio.create_task(aioitertools.next(aiters if iters[i] is None else iters[i]))
                 except StopAsyncIteration:
                     completed_iters.add(i)
+                except concurrent.futures.CancelledError:
+                    raise concurrent.futures.CancelledError('Future {!r} was cancelled'.format(future)) from e
         for i in sorted(completed_iters, reverse=True):
             del iters[i]
             del nexts[i]
