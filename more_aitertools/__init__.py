@@ -71,7 +71,7 @@ async def merge(aiters):
                 except StopAsyncIteration:
                     completed_iters.add(i)
                 except concurrent.futures.CancelledError as e:
-                    raise concurrent.futures.CancelledError('Future {!r} was cancelled'.format(future)) from e
+                    raise concurrent.futures.CancelledError('Future {!r} at index {!r} was cancelled'.format(future, i)) from e
         for i in sorted(completed_iters, reverse=True):
             del iters[i]
             del nexts[i]
