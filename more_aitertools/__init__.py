@@ -1,5 +1,7 @@
-import aitertools
+import aioitertools
 import asyncio
+import builtins
+import concurrent.futures
 import heapq
 
 def create_task(awaitable):
@@ -16,19 +18,19 @@ class Queue(asyncio.Queue):
 
 async def collate(*iterables, key=lambda x: x):
     iters = [
-        await aitertools.aiter(iterable)
+        aioitertools.iter(iterable)
         for iterable in iterables
     ]
     heap = []
     nexts = []
     for i, iterable in enumerate(iters):
         try:
-            item = await aitertools.anext(iterable)
+            item = await aioitertools.next(iterable)
             heapq.heappush(heap, (key(item), item, i))
         except StopAsyncIteration:
             nexts.append(None)
         else:
-            nexts.append(create_task(aitertools.anext(iterable)))
+            nexts.append(create_task(aioitertools.next(iterable)))
     while any(fut is not None for fut in nexts):
         k, item, i = heapq.heappop(heap)
         yield item
@@ -39,24 +41,24 @@ async def collate(*iterables, key=lambda x: x):
             except StopAsyncIteration:
                 nexts[i] = None
             else:
-                nexts[i] = create_task(aitertools.anext(iters[i]))
+                nexts[i] = create_task(aioitertools.next(iters[i]))
 
 async def consume(aiter, n=float('inf')):
-    aiter = await aitertools.aiter(aiter)
+    aiter = aioitertools.iter(aiter)
     if n == float('inf'):
         async for item in aiter:
             pass
     else:
         for i in range(n):
             try:
-                await aitertools.anext(aiter)
+                await aioitertools.next(aiter)
             except StopAsyncIteration:
                 return
 
 async def merge(aiters):
-    aiters = await aitertools.aiter(aiters)
+    aiters = aioitertools.iter(aiters)
     iters = [None]
-    nexts = [create_task(aitertools.anext(aiters))]
+    nexts = [create_task(aioitertools.next(aiters))]
     while len(iters) > 0:
         await asyncio.wait(nexts, return_when=asyncio.FIRST_COMPLETED)
         new_iters = []
@@ -66,28 +68,33 @@ async def merge(aiters):
                 try:
                     if iters[i] is None:
                         # new iterator
-                        new_iters.append(await aitertools.aiter(future.result()))
+                        new_iters.append(aioitertools.iter(future.result()))
                     else:
                         # new item
                         yield future.result()
-                    nexts[i] = create_task(aitertools.anext(aiters if iters[i] is None else iters[i]))
+                    nexts[i] = create_task(aioitertools.next(aiters if iters[i] is None else iters[i]))
                 except StopAsyncIteration:
                     completed_iters.add(i)
+                except concurrent.futures.CancelledError as e:
+                    raise concurrent.futures.CancelledError('Future {!r} at index {!r} was cancelled'.format(future, i)) from e
         for i in sorted(completed_iters, reverse=True):
             del iters[i]
             del nexts[i]
         iters += new_iters
-        nexts += [create_task(aitertools.anext(new_iter)) for new_iter in new_iters]
+        nexts += [create_task(aioitertools.next(new_iter)) for new_iter in new_iters]
+
+async def tuple(aiter):
+    return builtins.tuple(item async for item in aioitertools.iter(aiter))
 
 async def wait(aiter):
-    aiter = await aitertools.aiter(aiter)
+    aiter = aioitertools.iter(aiter)
     items = []
-    next_future = create_task(aitertools.anext(aiter))
+    next_future = create_task(aioitertools.next(aiter))
     while True:
         if next_future.done() or not items:
             try:
                 items.append(create_task(await next_future))
-                next_future = create_task(aitertools.anext(aiter))
+                next_future = create_task(aioitertools.next(aiter))
             except StopAsyncIteration:
                 break
         await asyncio.wait([items[0], next_future], return_when=asyncio.FIRST_COMPLETED)
