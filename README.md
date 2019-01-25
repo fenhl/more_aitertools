@@ -8,7 +8,7 @@ This Python package is intended as an add-on to [`aioitertools`](https://github.
 * The `tuple` coroutine, which takes an iterable and collects it into a tuple, similar to `aioitertools.list` and `aioitertools.set`.
 * The `wait` async iterator, which takes an iterable (sync or async) of futures, and yields results from the front of the iterable as soon as they become available. Using this is similar to calling `asyncio.wait` in `return_when=ALL_COMPLETED` mode and taking the first return value, except it can handle an empty iterable, `.result()` does not have to be called, futures near the start can be used before later futures become available, and futures yielded from the iterable are started before continuing the iteration.
 
-Python 3.7 is required. For a version compatible with Python 3.6, see [the py36 branch](https://github.com/fenhl/more_aitertools/tree/py36).
+Python 3.6 is required.
 
 # Example
 
