@@ -81,6 +81,14 @@ async def merge(aiters):
 async def tuple(aiter):
     return builtins.tuple(item async for item in aioitertools.iter(aiter))
 
+async def unique_justseen(aiter, key=lambda x: x):
+    prev_result = object()
+    async for item in aioitertools.iter(aiter):
+        curr_result = key(item)
+        if curr_result != prev_result:
+            prev_result = curr_result
+            yield item
+
 async def wait(aiter):
     aiter = aioitertools.iter(aiter)
     items = []
