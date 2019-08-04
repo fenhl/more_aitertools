@@ -1,8 +1,9 @@
-import aioitertools
 import asyncio
 import builtins
 import concurrent.futures
 import heapq
+
+import aioitertools # PyPI: aioitertools
 
 class Queue(asyncio.Queue):
     def __aiter__(self):
